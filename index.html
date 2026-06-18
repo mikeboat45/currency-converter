@@ -10,7 +10,106 @@
       <div>
         <img src="assets/images/logo.svg" alt="FX Checker" />
 
-        <div role="tablist" aria-label="FX Checker Sections" hidden>
+        <p>55 Currencies · EOD · ECB data</p>
+        <!-- change currency number to display dynamically -->
+      </div>
+
+      <div id="live-ticker">Live Ticker</div>
+    </header>
+
+    <main>
+      <section id="convertion-area">
+        <p>Check the rate</p>
+
+        <div class="converter-container">
+          <div>
+            <div class="input-group">
+              <div class="field-box">
+                <label for="send-input">Send</label>
+                <input
+                  type="number"
+                  id="send-input"
+                  value="1000"
+                  min="0"
+                  step="any"
+                  aria-describedby="send-currency-code"
+                />
+              </div>
+
+              <!--dropdown on click-->
+              <button
+                type="button"
+                class="currency-select-btn"
+                id="send-currency-btn"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-label="Select send currency"
+              >
+                <img
+                  src="assets/images/flags/us.webp"
+                  alt="US dollar"
+                  class="flag-icon"
+                />
+                <span class="currency-code">USD</span>
+
+                <!-- Arrow/Chevron SVG icon -->
+              </button>
+            </div>
+
+            <button>swap</button>
+            <!--add logic-->
+
+            <div>
+            <div class="output-group">
+              <div class="field-box">
+                <label for="receive-output">Send</label>
+                <input
+                  type="number"
+                  id="receive-output"
+                  value=""
+                  min="0"
+                  step="any"
+                  aria-describedby="receive-currency-code"
+                />
+              </div>
+
+              <!--dropdown on click-->
+              <button
+                type="button"
+                class="currency-select-btn"
+                id="receive-currency-btn"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-label="Select receive currency"
+              >
+                <img
+                  src="assets/images/flags/eu.webp"
+                  alt="Euro"
+                  class="flag-icon"
+                />
+                <span class="currency-code">USD</span>
+
+                <!-- Arrow/Chevron SVG icon -->
+              </button>
+            </div>
+
+          <hr />
+
+          <div>
+            <p>exchange rate</p>
+            <!--to be dynamic-->
+
+            <div>
+              <!--state management-->
+              <button>Favorite</button>
+              <button>Log Conversion</button>
+            </div>
+          </div>
+
+        </div>
+      </section>
+
+      <div role="tablist" aria-label="FX Checker Sections">
           <!--change hidden for larger screens with js-->
           <button
             role="tab"
@@ -49,99 +148,7 @@
           </button>
         </div>
 
-        <p>55 Currencies · EOD · ECB data</p>
-        <!-- change currency number to display dynamically -->
-      </div>
-
-      <div id="live-ticker">Live Ticker</div>
-    </header>
-
-    <main>
-      <section id="">
-        <p>Check the rate</p>
-
-        <div class="converter-container">
-          <div>
-            <div class="input-group">
-              <div class="field-box">
-                <label for="send-input">Send</label>
-                <input
-                  type="number"
-                  id="send-input"
-                  value="1000"
-                  min="0"
-                  step="any"
-                  aria-describedby="send-currency-code"
-                />
-              </div>
-
-              <button
-                type="button"
-                class="currency-select-btn"
-                id="send-currency-btn"
-                aria-haspopup="listbox"
-                aria-expanded="false"
-                aria-label="Select send currency"
-              >
-                <img
-                  src="assets/images/flags/us.webp"
-                  alt="US dollar"
-                  class="flag-icon"
-                />
-                <span class="currency-code">USD</span>
-
-                <!-- Arrow/Chevron SVG icon -->
-              </button>
-            </div>
-
-            <button>swap</button>
-            <!--add logic-->
-
-            <div>
-            <div class="output-group">
-              <div class="field-box">
-                <label for="receive-output">Send</label>
-                <input
-                  type="number"
-                  id="receive-output"
-                  value=""
-                  min="0"
-                  step="any"
-                  aria-describedby="receive-currency-code"
-                />
-              </div>
-
-              <button
-                type="button"
-                class="currency-select-btn"
-                id="receive-currency-btn"
-                aria-haspopup="listbox"
-                aria-expanded="false"
-                aria-label="Select receive currency"
-              >
-                <img
-                  src="assets/images/flags/eu.webp"
-                  alt="Euro"
-                  class="flag-icon"
-                />
-                <span class="currency-code">USD</span>
-
-                <!-- Arrow/Chevron SVG icon -->
-              </button>
-            </div>
-
-          <hr />
-
-          <div>
-            <p>exchange rate</p>
-            <!--to be dynamic-->
-            <div>
-              <button>Favorite</button>
-              <button>Log Conversion</button>
-            </div>
-          </div>
-        </div>
-      </section>
+        <div role="tabpanel"></div>
     </main>
   </body>
 </html>
