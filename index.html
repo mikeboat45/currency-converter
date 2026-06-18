@@ -1,0 +1,147 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Currency Converter</title>
+  </head>
+  <body>
+    <header>
+      <div>
+        <img src="assets/images/logo.svg" alt="FX Checker" />
+
+        <div role="tablist" aria-label="FX Checker Sections" hidden>
+          <!--change hidden for larger screens with js-->
+          <button
+            role="tab"
+            aria-selected="true"
+            aria-controls="panel-history"
+            id="tab-history"
+          >
+            History
+          </button>
+          <button
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-compare"
+            id="tab-compare"
+            tabindex="-1"
+          >
+            Compare
+          </button>
+          <button
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-favorites"
+            id="tab-favorites"
+            tabindex="-1"
+          >
+            Favorites
+          </button>
+          <button
+            role="tab"
+            aria-selected="false"
+            aria-controls="panel-log"
+            id="tab-log"
+            tabindex="-1"
+          >
+            Log
+          </button>
+        </div>
+
+        <p>55 Currencies · EOD · ECB data</p>
+        <!-- change currency number to display dynamically -->
+      </div>
+
+      <div id="live-ticker">Live Ticker</div>
+    </header>
+
+    <main>
+      <section id="">
+        <p>Check the rate</p>
+
+        <div class="converter-container">
+          <div>
+            <div class="input-group">
+              <div class="field-box">
+                <label for="send-input">Send</label>
+                <input
+                  type="number"
+                  id="send-input"
+                  value="1000"
+                  min="0"
+                  step="any"
+                  aria-describedby="send-currency-code"
+                />
+              </div>
+
+              <button
+                type="button"
+                class="currency-select-btn"
+                id="send-currency-btn"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-label="Select send currency"
+              >
+                <img
+                  src="assets/images/flags/us.webp"
+                  alt="US dollar"
+                  class="flag-icon"
+                />
+                <span class="currency-code">USD</span>
+
+                <!-- Arrow/Chevron SVG icon -->
+              </button>
+            </div>
+
+            <button>swap</button>
+            <!--add logic-->
+
+            <div>
+            <div class="output-group">
+              <div class="field-box">
+                <label for="receive-output">Send</label>
+                <input
+                  type="number"
+                  id="receive-output"
+                  value=""
+                  min="0"
+                  step="any"
+                  aria-describedby="receive-currency-code"
+                />
+              </div>
+
+              <button
+                type="button"
+                class="currency-select-btn"
+                id="receive-currency-btn"
+                aria-haspopup="listbox"
+                aria-expanded="false"
+                aria-label="Select receive currency"
+              >
+                <img
+                  src="assets/images/flags/eu.webp"
+                  alt="Euro"
+                  class="flag-icon"
+                />
+                <span class="currency-code">USD</span>
+
+                <!-- Arrow/Chevron SVG icon -->
+              </button>
+            </div>
+
+          <hr />
+
+          <div>
+            <p>exchange rate</p>
+            <!--to be dynamic-->
+            <div>
+              <button>Favorite</button>
+              <button>Log Conversion</button>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </body>
+</html>
