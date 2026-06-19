@@ -1,0 +1,116 @@
+@font-face {
+  font-family: "CustomFont";
+  src: url(../../assets/fonts/jetbrains-mono/jetbrains-mono-variable.ttf)
+    format("truetype");
+}
+
+body {
+  background-color: black;
+  color: white;
+  font-family: "CustomFont";
+}
+
+.heading {
+  display: flex;
+  flex-direction: row;
+  padding: 15px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+main {
+  margin: 0 20px;
+}
+
+#convertion-area {
+  margin: 20px 0;
+}
+
+.converter-container {
+  display: flex;
+  flex-direction: column;
+  margin: 10px 0;
+  background-color: #333;
+  opacity: 0.9;
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.convert {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.input-group,
+.output-group {
+  border: 1px #e8e8e8 solid;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: last baseline;
+  justify-content: space-between;
+  padding: 15px;
+  width: 90%;
+}
+
+.field-box {
+  display: flex;
+  flex-direction: column;
+}
+
+.currency-select-btn {
+  color: #e8e8e8;
+  display: flex;
+  align-items: center;
+  padding: 5px;
+  background-color: rgb(47, 46, 46);
+  border: 0.5px solid #e8e8e8;
+  border-radius: 5px;
+}
+
+.flag-icon {
+  height: 18px;
+  width: 18px;
+  margin-right: 4px;
+  border-radius: 20px;
+}
+
+#send-input,
+#receive-output {
+  border: none;
+  margin-top: 10px;
+  padding: 10px;
+  background-color: #333;
+  color: #e8e8e8;
+  font-family: "CustomFont";
+  font-size: 1.5rem;
+  width: 200px;
+}
+
+#swap {
+  width: 60px;
+  height: 40px;
+  text-align: center;
+  border: 1px #e8e8e8 solid;
+  border-radius: 5px;
+  background-color: #333;
+  color: #e8e8e8;
+  margin-bottom: 10px;
+}
+
+hr {
+  border: none;
+  border-top: 2px dashed white;
+  color: #fff;
+  background-color: #fff;
+  height: 1px;
+}
+
+.convert-adjacent {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+}

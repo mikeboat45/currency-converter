@@ -3,29 +3,37 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="src/styles/reset.css" />
+    <link rel="stylesheet" href="src/styles/main.css" />
     <title>Currency Converter</title>
   </head>
   <body>
     <header>
-      <div>
-        <img src="assets/images/logo.svg" alt="FX Checker" />
+      <div class="heading">
+        <img src="assets/images/logo.svg" alt="FX Checker" class="logo" />
 
-        <p>55 Currencies · EOD · ECB data</p>
+        <p>55 Currencies · EOD · ECB DATA</p>
         <!-- change currency number to display dynamically -->
       </div>
 
-      <div id="live-ticker">Live Ticker</div>
+      <div class="ticker-wrap" aria-label="Live Market Rates">
+        <div class="ticker-track" id="ticker-track">
+          <!-- dynamically insert items here. To make the scroll infinite and     
+              seamless, we will duplicate the set of items in JS so it loop-  
+              scrolls smoothly. Use css keyframes for lateral scrolling -->
+        </div>
+      </div>
     </header>
 
     <main>
       <section id="convertion-area">
-        <p>Check the rate</p>
+        <p>CHECK THE RATE</p>
 
         <div class="converter-container">
-          <div>
+          <div class="convert">
             <div class="input-group">
               <div class="field-box">
-                <label for="send-input">Send</label>
+                <label for="send-input">SEND</label>
                 <input
                   type="number"
                   id="send-input"
@@ -56,16 +64,16 @@
               </button>
             </div>
 
-            <button>swap</button>
+            <button id="swap">swap</button>
             <!--add logic-->
 
-            <div>
             <div class="output-group">
               <div class="field-box">
-                <label for="receive-output">Send</label>
+                <label for="receive-output">RECEIVE</label>
                 <input
                   type="number"
                   id="receive-output"
+                  class="button--submit"
                   value=""
                   min="0"
                   step="any"
@@ -87,15 +95,16 @@
                   alt="Euro"
                   class="flag-icon"
                 />
-                <span class="currency-code">USD</span>
+                <span class="currency-code">EUR</span>
 
                 <!-- Arrow/Chevron SVG icon -->
               </button>
             </div>
+          </div>
 
           <hr />
 
-          <div>
+          <div class="convert-adjacent">
             <p>exchange rate</p>
             <!--to be dynamic-->
 
@@ -105,50 +114,68 @@
               <button>Log Conversion</button>
             </div>
           </div>
-
         </div>
       </section>
 
+      <!--tabs and details-->
       <div role="tablist" aria-label="FX Checker Sections">
-          <!--change hidden for larger screens with js-->
-          <button
-            role="tab"
-            aria-selected="true"
-            aria-controls="panel-history"
-            id="tab-history"
-          >
-            History
-          </button>
-          <button
-            role="tab"
-            aria-selected="false"
-            aria-controls="panel-compare"
-            id="tab-compare"
-            tabindex="-1"
-          >
-            Compare
-          </button>
-          <button
-            role="tab"
-            aria-selected="false"
-            aria-controls="panel-favorites"
-            id="tab-favorites"
-            tabindex="-1"
-          >
-            Favorites
-          </button>
-          <button
-            role="tab"
-            aria-selected="false"
-            aria-controls="panel-log"
-            id="tab-log"
-            tabindex="-1"
-          >
-            Log
-          </button>
-        </div>
+        <!--change hidden for larger screens with js-->
+        <button
+          role="tab"
+          aria-selected="true"
+          aria-controls="panel-history"
+          id="tab-history"
+        >
+          History
+        </button>
+        <button
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-compare"
+          id="tab-compare"
+          tabindex="-1"
+        >
+          Compare
+        </button>
+        <button
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-favorites"
+          id="tab-favorites"
+          tabindex="-1"
+        >
+          Favorites
+        </button>
+        <button
+          role="tab"
+          aria-selected="false"
+          aria-controls="panel-log"
+          id="tab-log"
+          tabindex="-1"
+        >
+          Log
+        </button>
+      </div>
 
-        <div role="tabpanel"></div>
+      <section id="panel-history" role="tabpanel" aria-labelledby="tab-history">
+        <!--history tab details-->
+      </section>
+
+      <section id="panel-compare" role="tabpanel" aria-labelledby="tab-compare">
+        <!--compare tab details-->
+      </section>
+
+      <section
+        id="panel-favorites"
+        role="tabpanel"
+        aria-labelledby="tab-favorites"
+      >
+        <!--favorites tab details-->
+      </section>
+
+      <section id="panel-log" role="tabpanel" aria-labelledby="tab-log">
+        <!--log tab details-->
+      </section>
     </main>
   </body>
 </html>
