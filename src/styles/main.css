@@ -28,7 +28,7 @@ main {
 
 #convertion-area h2 {
   font-size: 0.9rem;
-  color: #888;
+  color: #f7f5f5;
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 10px;
@@ -38,10 +38,11 @@ main {
   display: flex;
   flex-direction: column;
   margin: 10px 0;
-  background-color: #333;
+  background-color: rgba(240, 240, 255, 0.3);
   opacity: 0.9;
   border-radius: 5px;
   padding: 10px;
+  padding-top: 30px;
 }
 
 .convert {
@@ -53,7 +54,7 @@ main {
 
 .input-group,
 .output-group {
-  border: 1px #e8e8e8 solid;
+  border: 2px rgba(240, 240, 255, 0.1) solid;
   border-radius: 5px;
   margin-bottom: 10px;
   display: flex;
@@ -81,7 +82,7 @@ main {
   display: flex;
   align-items: center;
   padding: 5px;
-  background-color: rgb(47, 46, 46);
+  background-color: rgba(240, 240, 255, 0.2);
   border: 0.5px solid #e8e8e8;
   border-radius: 5px;
 }
@@ -98,7 +99,7 @@ main {
   border: none;
   margin-top: 10px;
   padding: 10px;
-  background-color: #333;
+  background-color: rgba(240, 240, 255, 0);
   color: #e8e8e8;
   font-family: "CustomFont";
   font-size: 1.5rem;
@@ -108,16 +109,18 @@ main {
 #swap {
   width: 60px;
   height: 40px;
-  border: 1px #e8e8e8 solid;
+  border: 1px rgba(240, 240, 255, 0.1) solid;
   border-radius: 5px;
-  background-color: #333;
+  background-color: rgba(240, 240, 255, 0);
   color: #e8e8e8;
   margin-bottom: 10px;
   display: flex;
   justify-content: center;
   align-items: center;
   cursor: pointer;
-  transition: transform 0.2s ease, border-color 0.2s ease;
+  transition:
+    transform 0.2s ease,
+    border-color 0.2s ease;
 }
 
 #swap:hover {
@@ -133,10 +136,8 @@ main {
 
 hr {
   border: none;
-  border-top: 2px dashed white;
-  color: #fff;
-  background-color: #fff;
-  height: 1px;
+  border-top: 2px dashed rgba(240, 240, 255, 0.1);
+  margin: 20px 0;
 }
 
 .convert-adjacent {
@@ -247,7 +248,6 @@ hr {
   font-size: 0.85rem;
   padding-left: 20px;
 }
-
 
 /* Currency Picker Dialog Styling */
 .picker-dialog {
@@ -397,4 +397,3 @@ hr {
 .currency-item.selected .check-icon {
   opacity: 1;
 }
-
