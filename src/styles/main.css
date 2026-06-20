@@ -207,6 +207,48 @@ hr {
   }
 }
 
+/* Ticker Item Styling */
+.ticker-item {
+  display: inline-flex;
+  align-items: center;
+  padding: 0 24px;
+  border-right: 1px solid #222;
+  font-size: 0.85rem;
+  height: 40px;
+}
+
+.ticker-pair {
+  font-weight: bold;
+  margin-right: 8px;
+  color: #fff;
+}
+
+.ticker-rate {
+  font-family: "CustomFont";
+  margin-right: 8px;
+  color: #aaa;
+}
+
+.ticker-change {
+  font-weight: 500;
+  font-size: 0.8rem;
+}
+
+.ticker-change.up {
+  color: #4caf50;
+}
+
+.ticker-change.down {
+  color: #f44336;
+}
+
+.ticker-error {
+  color: #f44336;
+  font-size: 0.85rem;
+  padding-left: 20px;
+}
+
+
 /* Currency Picker Dialog Styling */
 .picker-dialog {
   border: 1px solid #e8e8e8;

@@ -1,5 +1,5 @@
 /**
- * API service for interacting with the Frankfurter API v2.
+ * API service for interacting with the Frankfurter API v1.
  * Docs: https://www.frankfurter.app/docs/
  */
 
