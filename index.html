@@ -6,34 +6,36 @@
     <link rel="stylesheet" href="src/styles/reset.css" />
     <link rel="stylesheet" href="src/styles/main.css" />
     <title>Currency Converter</title>
+    <script type="module" src="src/app.js"></script>
   </head>
   <body>
     <header>
       <div class="heading">
         <img src="assets/images/logo.svg" alt="FX Checker" class="logo" />
-
-        <p>55 Currencies · EOD · ECB DATA</p>
-        <!-- change currency number to display dynamically -->
+        <p><span id="currency-count">55</span> Currencies · EOD · ECB data</p>
       </div>
 
-      <div class="ticker-wrap" aria-label="Live Market Rates">
-        <div class="ticker-track" id="ticker-track">
-          <!-- dynamically insert items here. To make the scroll infinite and     
-              seamless, we will duplicate the set of items in JS so it loop-  
-              scrolls smoothly. Use css keyframes for lateral scrolling -->
+      <div class="ticker-container">
+        <span class="ticker-label">Live markets</span>
+        <div class="ticker-wrap" aria-label="Live Market Rates">
+          <div class="ticker-track" id="ticker-track">
+            <!-- dynamically insert items here. To make the scroll infinite and     
+                seamless, we will duplicate the set of items in JS so it loop-  
+                scrolls smoothly. Use css keyframes for lateral scrolling -->
+          </div>
         </div>
       </div>
     </header>
 
     <main>
       <section id="convertion-area">
-        <p>CHECK THE RATE</p>
+        <h2>Check the rate</h2>
 
         <div class="converter-container">
           <div class="convert">
             <div class="input-group">
               <div class="field-box">
-                <label for="send-input">SEND</label>
+                <label for="send-input">Send</label>
                 <input
                   type="number"
                   id="send-input"
@@ -59,17 +61,17 @@
                   class="flag-icon"
                 />
                 <span class="currency-code">USD</span>
-
-                <!-- Arrow/Chevron SVG icon -->
+                <img src="assets/images/icon-chevron-down.svg" alt="" class="chevron-icon" />
               </button>
             </div>
 
-            <button id="swap">swap</button>
-            <!--add logic-->
+            <button type="button" id="swap" aria-label="Swap currencies">
+              <img src="assets/images/icon-exchange.svg" alt="" class="swap-icon" />
+            </button>
 
             <div class="output-group">
               <div class="field-box">
-                <label for="receive-output">RECEIVE</label>
+                <label for="receive-output">Receive</label>
                 <input
                   type="number"
                   id="receive-output"
@@ -96,8 +98,7 @@
                   class="flag-icon"
                 />
                 <span class="currency-code">EUR</span>
-
-                <!-- Arrow/Chevron SVG icon -->
+                <img src="assets/images/icon-chevron-down.svg" alt="" class="chevron-icon" />
               </button>
             </div>
           </div>
@@ -105,13 +106,12 @@
           <hr />
 
           <div class="convert-adjacent">
-            <p>exchange rate</p>
-            <!--to be dynamic-->
+            <p id="exchange-rate-text">1 USD = 1.0000 EUR</p>
 
             <div>
               <!--state management-->
-              <button>Favorite</button>
-              <button>Log Conversion</button>
+              <button type="button" id="favorite-btn">Favorite</button>
+              <button type="button" id="log-btn">Log conversion</button>
             </div>
           </div>
         </div>
@@ -177,5 +177,38 @@
         <!--log tab details-->
       </section>
     </main>
+
+    <!-- Currency Picker Dialog (accessible popup modal) -->
+    <dialog id="currency-picker" class="picker-dialog">
+      <div class="picker-container">
+        <div class="picker-header">
+          <h2 class="picker-title" id="picker-dialog-title">Select Currency</h2>
+          <button type="button" id="close-picker-btn" aria-label="Close currency picker" class="close-btn">&times;</button>
+        </div>
+        <div class="picker-search-container">
+          <input
+            type="text"
+            id="picker-search-input"
+            class="picker-search-input"
+            placeholder="Search currencies..."
+            aria-label="Search currency list"
+          />
+        </div>
+        <div class="picker-lists-container">
+          <section class="picker-section" id="popular-section">
+            <h3 class="picker-section-title">Popular</h3>
+            <ul id="popular-list" class="currency-list" role="listbox" aria-label="Popular currencies">
+              <!-- Dynamic popular items here -->
+            </ul>
+          </section>
+          <section class="picker-section" id="other-section">
+            <h3 class="picker-section-title">Other Currencies</h3>
+            <ul id="other-list" class="currency-list" role="listbox" aria-label="Other currencies">
+              <!-- Dynamic other items here -->
+            </ul>
+          </section>
+        </div>
+      </div>
+    </dialog>
   </body>
 </html>
