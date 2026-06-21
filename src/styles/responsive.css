@@ -1,0 +1,23 @@
+/* Tablet (≥ 768px) */
+@media (min-width: 768px) {
+}
+
+/* Desktop (≥ 1024px) */
+@media (min-width: 1024px) {
+  .convert {
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+  }
+
+  /* .input-group,
+  .output-group {
+    width: auto;
+  } */
+
+  .convert-adjacent {
+    flex-direction: row;
+    justify-content: space-between;
+    gap: 0px;
+  }
+}
