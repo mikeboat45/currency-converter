@@ -100,10 +100,14 @@ main {
   margin-top: 10px;
   padding: 10px;
   background-color: rgba(240, 240, 255, 0);
-  color: #e8e8e8;
+  color: white;
   font-family: "CustomFont";
   font-size: 1.5rem;
   width: 200px;
+}
+
+#receive-output {
+  color: greenyellow;
 }
 
 #swap {
@@ -145,6 +149,40 @@ hr {
   justify-content: space-between;
   align-items: center;
   padding: 10px;
+}
+
+#favorite-btn {
+  border: 2px solid greenyellow;
+  background-color: greenyellow;
+  border-radius: 5px;
+  padding: 10px 14px;
+  font-family: "CustomFont";
+  font-size: 1.05rem;
+  padding-left: 24px;
+
+  cursor: pointer;
+  background-image: url("/assets/images/icon-star.svg");
+  background-repeat: no-repeat;
+  background-position: left center;
+  background-size: 20px 20px;
+}
+
+#favorite-btn.active {
+  background-image: url("/assets/images/icon-star-filled.svg");
+}
+
+#log-btn {
+  border: 2px solid greenyellow;
+  border-radius: 5px;
+  background-color: rgba(240, 240, 255, 0);
+  padding: 10px 14px;
+  font-family: "CustomFont";
+  color: #e8e8e8;
+  font-size: 1.05rem;
+}
+
+#log-btn:hover {
+  background-color: rgba(173, 255, 47, 0.2);
 }
 
 /* Chevron Icon inside select buttons */

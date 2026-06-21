@@ -6,7 +6,7 @@
     <link rel="stylesheet" href="src/styles/reset.css" />
     <link rel="stylesheet" href="src/styles/main.css" />
     <title>Currency Converter</title>
-    <script type="module" src="src/app.js"></script>
+    <script type="module" src="src/app.js" defer></script>
   </head>
   <body>
     <header>
@@ -61,12 +61,20 @@
                   class="flag-icon"
                 />
                 <span class="currency-code">USD</span>
-                <img src="assets/images/icon-chevron-down.svg" alt="" class="chevron-icon" />
+                <img
+                  src="assets/images/icon-chevron-down.svg"
+                  alt=""
+                  class="chevron-icon"
+                />
               </button>
             </div>
 
             <button type="button" id="swap" aria-label="Swap currencies">
-              <img src="assets/images/icon-exchange.svg" alt="" class="swap-icon" />
+              <img
+                src="assets/images/icon-exchange.svg"
+                alt=""
+                class="swap-icon"
+              />
             </button>
 
             <div class="output-group">
@@ -98,7 +106,11 @@
                   class="flag-icon"
                 />
                 <span class="currency-code">EUR</span>
-                <img src="assets/images/icon-chevron-down.svg" alt="" class="chevron-icon" />
+                <img
+                  src="assets/images/icon-chevron-down.svg"
+                  alt=""
+                  class="chevron-icon"
+                />
               </button>
             </div>
           </div>
@@ -183,7 +195,14 @@
       <div class="picker-container">
         <div class="picker-header">
           <h2 class="picker-title" id="picker-dialog-title">Select Currency</h2>
-          <button type="button" id="close-picker-btn" aria-label="Close currency picker" class="close-btn">&times;</button>
+          <button
+            type="button"
+            id="close-picker-btn"
+            aria-label="Close currency picker"
+            class="close-btn"
+          >
+            &times;
+          </button>
         </div>
         <div class="picker-search-container">
           <input
@@ -197,13 +216,23 @@
         <div class="picker-lists-container">
           <section class="picker-section" id="popular-section">
             <h3 class="picker-section-title">Popular</h3>
-            <ul id="popular-list" class="currency-list" role="listbox" aria-label="Popular currencies">
+            <ul
+              id="popular-list"
+              class="currency-list"
+              role="listbox"
+              aria-label="Popular currencies"
+            >
               <!-- Dynamic popular items here -->
             </ul>
           </section>
           <section class="picker-section" id="other-section">
             <h3 class="picker-section-title">Other Currencies</h3>
-            <ul id="other-list" class="currency-list" role="listbox" aria-label="Other currencies">
+            <ul
+              id="other-list"
+              class="currency-list"
+              role="listbox"
+              aria-label="Other currencies"
+            >
               <!-- Dynamic other items here -->
             </ul>
           </section>
