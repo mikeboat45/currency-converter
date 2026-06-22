@@ -7,6 +7,37 @@
   .chart-wrapper {
     height: 350px;
   }
+
+  /* Horizontal layout overrides for desktop tablists */
+  [role="tablist"] {
+    flex-direction: row;
+    cursor: default;
+    gap: 4px;
+  }
+
+  [role="tablist"].is-open [role="tab"],
+  [role="tab"] {
+    display: block;
+    flex: 1;
+    text-align: center;
+    padding: 12px 8px;
+  }
+
+  [role="tab"]:hover {
+    color: #fff;
+    background-color: rgba(255, 255, 255, 0.05);
+  }
+
+  [role="tab"][aria-selected="true"] {
+    background-color: #2b2b2b;
+    color: greenyellow;
+    justify-content: center;
+  }
+
+  /* Hide the vertical toggle arrow indicator on larger viewports */
+  [role="tab"][aria-selected="true"]::after {
+    display: none !important;
+  }
 }
 
 /* Desktop (≥ 1024px) */

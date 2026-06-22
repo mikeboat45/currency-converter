@@ -20,10 +20,12 @@ body {
 
 .heading p {
   text-transform: uppercase;
+  font-size: 0.75rem;
 }
 
 main {
   margin: 0 20px;
+  margin-bottom: 30px;
 }
 
 #convertion-area {
@@ -42,7 +44,7 @@ main {
   display: flex;
   flex-direction: column;
   margin: 10px 0;
-  background-color: #222;
+  background-color: #1a1a1a;
   opacity: 0.9;
   border-radius: 5px;
   padding: 10px;
@@ -54,11 +56,12 @@ main {
   flex-direction: column;
   justify-content: space-around;
   align-items: center;
+  margin: 0 20px;
 }
 
 .input-group,
 .output-group {
-  border: 2px #888 solid;
+  border: 1px #888 solid;
   border-radius: 5px;
   margin-bottom: 10px;
   display: flex;
@@ -66,12 +69,13 @@ main {
   justify-content: space-between;
   padding: 15px;
   width: auto;
-  background-color: #2b2b2b;
+  background-color: rgba(255, 255, 255, 0.05);
 }
 
 .field-box {
   display: flex;
   flex-direction: column;
+  width: 180px;
 }
 
 .field-box label {
@@ -80,6 +84,10 @@ main {
   text-transform: uppercase;
   letter-spacing: 0.05em;
   margin-bottom: 4px;
+}
+
+.field-box input:active {
+  background: transparent;
 }
 
 .currency-select-btn {
@@ -443,48 +451,94 @@ hr {
   opacity: 1;
 }
 
-/* Tabs & Tab Panels styling */
+/* Tabs styled as a dropdown on mobile by default */
 [role="tablist"] {
+  position: relative;
   display: flex;
+  flex-direction: column;
   background-color: #1a1a1a;
   border-radius: 8px;
   padding: 4px;
   margin-top: 30px;
   margin-bottom: 20px;
-  gap: 4px;
   border: 1px solid #333;
+  cursor: pointer;
+  user-select: none;
+  z-index: 10; /* Ensure open dropdown stays above panels */
 }
 
 [role="tab"] {
-  flex: 1;
+  display: none; /* Hide inactive tabs on mobile dropdown by default */
+  width: 100%;
   background: transparent;
   border: none;
   color: #888;
-  padding: 12px 8px;
+  padding: 12px 16px;
   font-family: "CustomFont", monospace;
   font-size: 0.95rem;
   font-weight: bold;
   cursor: pointer;
   border-radius: 6px;
-  transition: background-color 0.2s ease, color 0.2s ease;
-  text-align: center;
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease;
+  text-align: left;
   user-select: none;
+  box-sizing: border-box;
 }
 
-[role="tab"]:hover {
-  color: #fff;
-  background-color: rgba(255, 255, 255, 0.05);
-}
-
+/* Only show the active tab on mobile by default */
 [role="tab"][aria-selected="true"] {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   background-color: #2b2b2b;
   color: greenyellow;
+}
+
+/* Add dynamic chevron toggle symbol inside active tab on mobile */
+[role="tab"][aria-selected="true"]::after {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid greenyellow;
+  border-bottom: 2px solid greenyellow;
+  transform: translateY(-2px) rotate(45deg);
+  transition: transform 0.2s ease;
+  margin-left: 10px;
+}
+
+/* Stack and show all tab links when dropdown is open on mobile */
+[role="tablist"].is-open [role="tab"] {
+  display: block;
+  text-align: left;
+  background-color: transparent;
+  color: #888;
+}
+
+[role="tablist"].is-open [role="tab"]:hover {
+  background-color: rgba(255, 255, 255, 0.05);
+  color: #fff;
+}
+
+/* Selected item styling in vertical stack */
+[role="tablist"].is-open [role="tab"][aria-selected="true"] {
+  background-color: #2b2b2b;
+  color: greenyellow;
+  display: flex;
+}
+
+/* Rotate dropdown arrow direction when open */
+[role="tablist"].is-open [role="tab"][aria-selected="true"]::after {
+  transform: translateY(2px) rotate(-135deg);
 }
 
 [role="tab"]:focus-visible {
   outline: 2px solid greenyellow;
   outline-offset: -2px;
 }
+
 
 [role="tabpanel"] {
   outline: none;
@@ -684,7 +738,9 @@ hr {
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .hidden {
@@ -860,7 +916,9 @@ hr {
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: color 0.2s ease, transform 0.1s ease;
+  transition:
+    color 0.2s ease,
+    transform 0.1s ease;
 }
 
 .pin-btn:hover {
@@ -876,7 +934,9 @@ hr {
   fill: none;
   stroke: currentColor;
   stroke-width: 2.2;
-  transition: fill 0.2s ease, stroke 0.2s ease;
+  transition:
+    fill 0.2s ease,
+    stroke 0.2s ease;
 }
 
 .pin-btn.active .star-icon {

@@ -388,6 +388,11 @@ function switchTab(targetTab) {
 }
 
 function handleTabKeydown(e) {
+  // Disable arrow key WAI-ARIA auto-switching on mobile dropdown to allow normal tab navigation
+  if (window.innerWidth < 768) {
+    return;
+  }
+
   const currentTab = e.currentTarget;
   const index = tabs.indexOf(currentTab);
   let nextIndex;
@@ -417,12 +422,36 @@ function handleTabKeydown(e) {
   switchTab(nextTab);
 }
 
+const tablist = document.querySelector('[role="tablist"]');
+
 // Bind events to tabs
 tabs.forEach((tab) => {
   tab.addEventListener('click', (e) => {
-    switchTab(e.currentTarget);
+    const isMobile = window.innerWidth < 768;
+    if (isMobile && tablist) {
+      const isOpen = tablist.classList.contains('is-open');
+      const isSelected = tab.getAttribute('aria-selected') === 'true';
+
+      if (isSelected && !isOpen) {
+        // If clicking active option while closed, expand dropdown menu
+        tablist.classList.add('is-open');
+      } else {
+        // If clicking any option while open, choose option and close dropdown menu
+        switchTab(tab);
+        tablist.classList.remove('is-open');
+      }
+    } else {
+      switchTab(e.currentTarget);
+    }
   });
   tab.addEventListener('keydown', handleTabKeydown);
+});
+
+// Close mobile dropdown when clicking outside the tab list container
+document.addEventListener('click', (e) => {
+  if (window.innerWidth < 768 && tablist && !tablist.contains(e.target)) {
+    tablist.classList.remove('is-open');
+  }
 });
 
 // Restore last active tab on load
