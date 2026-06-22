@@ -1,5 +1,12 @@
 /* Tablet (≥ 768px) */
 @media (min-width: 768px) {
+  .history-stats {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  .chart-wrapper {
+    height: 350px;
+  }
 }
 
 /* Desktop (≥ 1024px) */

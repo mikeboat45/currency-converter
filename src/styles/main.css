@@ -516,3 +516,177 @@ hr {
   color: #888;
   font-size: 0.95rem;
 }
+
+/* History Tab Panel Styles */
+.history-container {
+  display: flex;
+  flex-direction: column;
+  margin-top: 10px;
+}
+
+.history-stats {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  background-color: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.stat-box {
+  display: flex;
+  flex-direction: column;
+  padding: 6px 10px;
+}
+
+.stat-label {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.stat-value {
+  font-size: 1.15rem;
+  font-weight: bold;
+  color: #fff;
+  font-family: "CustomFont", monospace;
+}
+
+.stat-value.up {
+  color: #4caf50;
+}
+
+.stat-value.down {
+  color: #f44336;
+}
+
+.history-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  margin-bottom: 15px;
+}
+
+@media (min-width: 480px) {
+  .history-controls {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+  }
+}
+
+.chart-info h3 {
+  font-size: 1.05rem;
+  font-weight: bold;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: #fff;
+  margin: 0;
+}
+
+.chart-info p {
+  font-size: 0.8rem;
+  color: #666;
+  margin: 4px 0 0 0;
+}
+
+.range-selector {
+  display: flex;
+  background-color: #111;
+  border: 1px solid #222;
+  border-radius: 6px;
+  padding: 2px;
+  width: max-content;
+}
+
+.range-btn {
+  background: transparent;
+  border: none;
+  color: #666;
+  padding: 6px 12px;
+  font-family: "CustomFont", monospace;
+  font-size: 0.8rem;
+  font-weight: bold;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: all 0.2s ease;
+}
+
+.range-btn:hover {
+  color: #fff;
+  background-color: rgba(255, 255, 255, 0.03);
+}
+
+.range-btn.active {
+  background-color: #222;
+  color: greenyellow;
+}
+
+.chart-wrapper {
+  position: relative;
+  width: 100%;
+  height: 260px;
+  background-color: #111;
+  border: 1px solid #222;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#history-chart {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.chart-loading,
+.chart-error {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(17, 17, 17, 0.9);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  text-align: center;
+  padding: 20px;
+  box-sizing: border-box;
+  z-index: 5;
+}
+
+.chart-error h4 {
+  color: #f44336;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.chart-error p {
+  color: #888;
+  font-size: 0.85rem;
+  max-width: 320px;
+  margin: 0;
+}
+
+.spinner {
+  width: 28px;
+  height: 28px;
+  border: 2.5px solid rgba(173, 255, 47, 0.1);
+  border-top-color: greenyellow;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.hidden {
+  display: none !important;
+}

@@ -1,4 +1,4 @@
-import { fetchCurrencies, fetchLatestRates } from './api/frankfurter.js';
+import { fetchCurrencies, fetchLatestRates, fetchRateHistory } from './api/frankfurter.js';
 import {
   getState,
   subscribe,
@@ -10,7 +10,9 @@ import {
   addFavorite,
   removeFavorite,
   isFavorite,
-  addLogEntry
+  addLogEntry,
+  setActiveChartRange,
+  setChartRates
 } from './services/state.js';
 import { getFlagUrl } from './utils/flags.js';
 
@@ -33,6 +35,11 @@ const otherList = document.getElementById('other-list');
 
 // Keep track of which selector triggered the currency dialog ('send' or 'receive')
 let activePickerSide = 'send';
+
+// Chart state variables
+let lastFetchedHistoryKey = '';
+let activeChartData = null;
+let chartResizeObserver = null;
 
 /**
  * Fetches the latest exchange rate from the API and updates state
@@ -172,6 +179,21 @@ subscribe((state) => {
   } else {
     favoriteBtn.classList.remove('active');
   }
+
+  // Update History Range Buttons visual state
+  const activeRange = state.activeChartRange;
+  document.querySelectorAll('.range-btn').forEach((btn) => {
+    const isSelected = btn.getAttribute('data-range').toUpperCase() === activeRange.toUpperCase();
+    btn.setAttribute('aria-checked', isSelected ? 'true' : 'false');
+    if (isSelected) {
+      btn.classList.add('active');
+    } else {
+      btn.classList.remove('active');
+    }
+  });
+
+  // Refresh history chart if needed
+  updateHistoryPanelIfNeeded();
 });
 
 // 2. Event Listeners for Core Conversion Section
@@ -276,6 +298,11 @@ function switchTab(targetTab) {
 
   // Persist the open tab selection
   localStorage.setItem('fx_checker_active_tab', targetTab.id);
+
+  // If switching to the history tab, trigger a check/redraw of the chart
+  if (targetTab.id === 'tab-history') {
+    updateHistoryPanelIfNeeded();
+  }
 }
 
 function handleTabKeydown(e) {
@@ -323,6 +350,310 @@ if (savedTabId) {
   if (savedTab) {
     switchTab(savedTab);
   }
+}
+
+// Bind range selectors
+document.querySelectorAll('.range-btn').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const range = btn.getAttribute('data-range').toUpperCase();
+    setActiveChartRange(range);
+  });
+});
+
+/**
+ * Calculates start date based on the active range
+ */
+function getStartDateForRange(range) {
+  const end = new Date();
+  let start = new Date();
+
+  switch (range.toLowerCase()) {
+    case '1d':
+      start.setDate(end.getDate() - 5); // 5 days ago to ensure at least 2 EOD points
+      break;
+    case '1w':
+      start.setDate(end.getDate() - 7);
+      break;
+    case '1m':
+      start.setMonth(end.getMonth() - 1);
+      break;
+    case '3m':
+      start.setMonth(end.getMonth() - 3);
+      break;
+    case '1y':
+      start.setFullYear(end.getFullYear() - 1);
+      break;
+    case '5y':
+      start.setFullYear(end.getFullYear() - 5);
+      break;
+    default:
+      start.setMonth(end.getMonth() - 1);
+  }
+  
+  return start.toISOString().split('T')[0];
+}
+
+/**
+ * Draws the rate history chart inside an HTML5 Canvas context
+ */
+function drawChart(canvas, dates, rates) {
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  if (!ctx) return;
+
+  const dpr = window.devicePixelRatio || 1;
+  const rect = canvas.getBoundingClientRect();
+  
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  
+  ctx.scale(dpr, dpr);
+
+  const width = rect.width;
+  const height = rect.height;
+
+  // Background color matching dark mode theme
+  ctx.fillStyle = '#111111';
+  ctx.fillRect(0, 0, width, height);
+
+  if (dates.length < 2) return;
+
+  const paddingLeft = 55;
+  const paddingRight = 15;
+  const paddingTop = 20;
+  const paddingBottom = 30;
+
+  const chartWidth = width - paddingLeft - paddingRight;
+  const chartHeight = height - paddingTop - paddingBottom;
+
+  const minRate = Math.min(...rates);
+  const maxRate = Math.max(...rates);
+  const rateRange = maxRate - minRate;
+  
+  const pad = rateRange === 0 ? 0.05 : rateRange * 0.15;
+  const yMin = minRate - pad;
+  const yMax = maxRate + pad;
+  const yRange = yMax - yMin;
+
+  const getX = (index) => paddingLeft + (index / (dates.length - 1)) * chartWidth;
+  const getY = (rate) => paddingTop + chartHeight - ((rate - yMin) / yRange) * chartHeight;
+
+  // 1. Draw horizontal grid lines & Y labels (Low, Mid, High)
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.04)';
+  ctx.lineWidth = 1;
+  ctx.font = '10px "CustomFont", monospace';
+  ctx.fillStyle = '#666';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+
+  const gridCount = 3;
+  for (let i = 0; i <= gridCount; i++) {
+    const rateVal = yMin + (i / gridCount) * yRange;
+    const y = getY(rateVal);
+
+    ctx.beginPath();
+    ctx.moveTo(paddingLeft, y);
+    ctx.lineTo(width - paddingRight, y);
+    ctx.stroke();
+
+    ctx.fillText(rateVal.toFixed(4), paddingLeft - 8, y);
+  }
+
+  // 2. Draw vertical grid ticks & X labels (Dates)
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+
+  const xLabelCount = Math.min(dates.length, 4);
+  const step = Math.max(1, Math.floor((dates.length - 1) / (xLabelCount - 1)));
+  
+  for (let i = 0; i < dates.length; i += step) {
+    const index = (i + step >= dates.length && i !== dates.length - 1) ? dates.length - 1 : i;
+    const x = getX(index);
+    
+    ctx.beginPath();
+    ctx.moveTo(x, paddingTop + chartHeight);
+    ctx.lineTo(x, paddingTop + chartHeight + 4);
+    ctx.stroke();
+
+    const d = new Date(dates[index]);
+    const dateStr = d.toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    ctx.fillText(dateStr, x, paddingTop + chartHeight + 8);
+    
+    if (index === dates.length - 1) break;
+  }
+
+  // 3. Draw gradient area under chart line
+  const grad = ctx.createLinearGradient(0, paddingTop, 0, paddingTop + chartHeight);
+  grad.addColorStop(0, 'rgba(173, 255, 47, 0.18)');
+  grad.addColorStop(1, 'rgba(173, 255, 47, 0.0)');
+  ctx.fillStyle = grad;
+
+  ctx.beginPath();
+  ctx.moveTo(getX(0), paddingTop + chartHeight);
+  for (let i = 0; i < dates.length; i++) {
+    ctx.lineTo(getX(i), getY(rates[i]));
+  }
+  ctx.lineTo(getX(dates.length - 1), paddingTop + chartHeight);
+  ctx.closePath();
+  ctx.fill();
+
+  // 4. Draw chart stroke line
+  ctx.strokeStyle = 'greenyellow';
+  ctx.lineWidth = 2;
+  ctx.lineJoin = 'round';
+  ctx.lineCap = 'round';
+
+  ctx.beginPath();
+  ctx.moveTo(getX(0), getY(rates[0]));
+  for (let i = 1; i < dates.length; i++) {
+    ctx.lineTo(getX(i), getY(rates[i]));
+  }
+  ctx.stroke();
+
+  // 5. Draw glowing latest rate indicator point at the end
+  const lastX = getX(dates.length - 1);
+  const lastY = getY(rates[rates.length - 1]);
+  
+  ctx.fillStyle = 'greenyellow';
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, 4, 0, 2 * Math.PI);
+  ctx.fill();
+  
+  ctx.strokeStyle = 'rgba(173, 255, 47, 0.4)';
+  ctx.lineWidth = 4;
+  ctx.beginPath();
+  ctx.arc(lastX, lastY, 7, 0, 2 * Math.PI);
+  ctx.stroke();
+}
+
+/**
+ * Initializes and debounces the resize observer for responsive redraws
+ */
+function initChartResizeObserver(canvas, dates, rates) {
+  if (chartResizeObserver) {
+    chartResizeObserver.disconnect();
+  }
+  chartResizeObserver = new ResizeObserver(() => {
+    drawChart(canvas, dates, rates);
+  });
+  chartResizeObserver.observe(canvas.parentElement);
+}
+
+/**
+ * Fetches rate history from the API and renders the chart and stats panels
+ */
+async function updateHistoryPanel() {
+  const { sendCurrency, receiveCurrency, activeChartRange } = getState();
+  const loadingEl = document.getElementById('chart-loading');
+  const errorEl = document.getElementById('chart-error');
+  const canvas = document.getElementById('history-chart');
+
+  if (!canvas) return;
+
+  if (loadingEl) loadingEl.classList.remove('hidden');
+  if (errorEl) errorEl.classList.add('hidden');
+
+  const endDate = new Date().toISOString().split('T')[0];
+  const startDate = getStartDateForRange(activeChartRange);
+
+  try {
+    const data = await fetchRateHistory(sendCurrency, receiveCurrency, startDate, endDate);
+    const dates = Object.keys(data.rates).sort();
+    
+    if (dates.length === 0) {
+      throw new Error('No historical rate data returned for the selected range.');
+    }
+    
+    const rates = dates.map(date => data.rates[date][receiveCurrency]);
+
+    // Save to local cache for resize observer
+    activeChartData = { dates, rates };
+
+    // Calculate statistical differences
+    const openVal = rates[0];
+    const lastVal = rates[rates.length - 1];
+    const changeVal = lastVal - openVal;
+    const pctChangeVal = (changeVal / openVal) * 100;
+
+    // Update statistics UI DOM elements
+    const openEl = document.getElementById('history-open');
+    const lastEl = document.getElementById('history-last');
+    const changeEl = document.getElementById('history-change');
+    const pctChangeEl = document.getElementById('history-pct-change');
+
+    if (openEl) openEl.textContent = openVal.toFixed(4);
+    if (lastEl) lastEl.textContent = lastVal.toFixed(4);
+    
+    if (changeEl) {
+      changeEl.textContent = `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(4)}`;
+      changeEl.className = `stat-value ${changeVal >= 0 ? 'up' : 'down'}`;
+    }
+    
+    if (pctChangeEl) {
+      pctChangeEl.textContent = `${changeVal >= 0 ? '▲' : '▼'} ${Math.abs(pctChangeVal).toFixed(2)}%`;
+      pctChangeEl.className = `stat-value ${changeVal >= 0 ? 'up' : 'down'}`;
+    }
+
+    // Update headers and text metadata
+    const titleEl = document.getElementById('chart-pair-title');
+    const metaEl = document.getElementById('chart-pair-meta');
+    
+    if (titleEl) titleEl.textContent = `${sendCurrency}/${receiveCurrency}`;
+    if (metaEl) {
+      const lastDate = new Date(dates[dates.length - 1]);
+      const dateStr = lastDate.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+      metaEl.textContent = `${lastVal.toFixed(4)} · ${dateStr}`;
+    }
+
+    if (loadingEl) loadingEl.classList.add('hidden');
+
+    // Draw the canvas elements and attach resize trigger
+    drawChart(canvas, dates, rates);
+    initChartResizeObserver(canvas, dates, rates);
+
+  } catch (err) {
+    console.error('Failed to load history chart data:', err);
+    if (loadingEl) loadingEl.classList.add('hidden');
+    if (errorEl) {
+      errorEl.classList.remove('hidden');
+      const errorMsgEl = document.getElementById('chart-error-msg');
+      if (errorMsgEl) {
+        errorMsgEl.textContent = `We couldn't load rate history for ${sendCurrency}/${receiveCurrency} right now: ${err.message}`;
+      }
+    }
+    
+    // Clear canvas on error
+    const ctx = canvas.getContext('2d');
+    if (ctx) {
+      const dpr = window.devicePixelRatio || 1;
+      const rect = canvas.getBoundingClientRect();
+      ctx.clearRect(0, 0, rect.width * dpr, rect.height * dpr);
+    }
+  }
+}
+
+/**
+ * Checks visibility before triggering updateHistoryPanel to prevent redundant fetches
+ */
+async function updateHistoryPanelIfNeeded() {
+  const tabHistory = document.getElementById('tab-history');
+  if (tabHistory && tabHistory.getAttribute('aria-selected') !== 'true') {
+    return;
+  }
+
+  const { sendCurrency, receiveCurrency, activeChartRange } = getState();
+  const currentKey = `${sendCurrency}-${receiveCurrency}-${activeChartRange}`;
+
+  if (currentKey === lastFetchedHistoryKey) {
+    const canvas = document.getElementById('history-chart');
+    if (canvas && activeChartData) {
+      drawChart(canvas, activeChartData.dates, activeChartData.rates);
+    }
+    return;
+  }
+
+  lastFetchedHistoryKey = currentKey;
+  await updateHistoryPanel();
 }
 
 // 5. App Initialization

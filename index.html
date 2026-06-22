@@ -171,9 +171,55 @@
       </div>
 
       <section id="panel-history" role="tabpanel" aria-labelledby="tab-history">
-        <div class="tab-boilerplate">
-          <h3>History Panel</h3>
-          <p>Rate history charts and range selectors will be displayed here.</p>
+        <div class="history-container">
+          <!-- Stats Header -->
+          <div class="history-stats">
+            <div class="stat-box">
+              <span class="stat-label">Open</span>
+              <span class="stat-value" id="history-open">-</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Last</span>
+              <span class="stat-value" id="history-last">-</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">Change</span>
+              <span class="stat-value" id="history-change">-</span>
+            </div>
+            <div class="stat-box">
+              <span class="stat-label">% Change</span>
+              <span class="stat-value" id="history-pct-change">-</span>
+            </div>
+          </div>
+
+          <!-- Controls Header -->
+          <div class="history-controls">
+            <div class="chart-info">
+              <h3 id="chart-pair-title">USD/EUR</h3>
+              <p id="chart-pair-meta">0.8530 · May 14 16:00 CET</p>
+            </div>
+            <div class="range-selector" role="radiogroup" aria-label="Chart Date Range">
+              <button type="button" role="radio" aria-checked="false" class="range-btn" data-range="1d">1d</button>
+              <button type="button" role="radio" aria-checked="false" class="range-btn" data-range="1w">1w</button>
+              <button type="button" role="radio" aria-checked="true" class="range-btn active" data-range="1m">1m</button>
+              <button type="button" role="radio" aria-checked="false" class="range-btn" data-range="3m">3m</button>
+              <button type="button" role="radio" aria-checked="false" class="range-btn" data-range="1y">1y</button>
+              <button type="button" role="radio" aria-checked="false" class="range-btn" data-range="5y">5y</button>
+            </div>
+          </div>
+
+          <!-- Canvas Chart Wrapper -->
+          <div class="chart-wrapper">
+            <div id="chart-error" class="chart-error hidden">
+              <h4>No chart data available</h4>
+              <p id="chart-error-msg">We couldn't load rate history for this pair right now. This usually clears up in a minute.</p>
+            </div>
+            <div id="chart-loading" class="chart-loading hidden">
+              <div class="spinner"></div>
+              <p>Loading historical rates...</p>
+            </div>
+            <canvas id="history-chart"></canvas>
+          </div>
         </div>
       </section>
 
