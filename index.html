@@ -224,9 +224,29 @@
       </section>
 
       <section id="panel-compare" role="tabpanel" aria-labelledby="tab-compare" hidden>
-        <div class="tab-boilerplate">
-          <h3>Compare Panel</h3>
-          <p>Multi-currency conversion comparisons will be displayed here.</p>
+        <div class="compare-container">
+          <!-- Compare Sub-header -->
+          <div class="compare-header">
+            <div class="compare-title-block">
+              <h3>Multi-currency</h3>
+              <p id="compare-send-desc">1,000 from USD</p>
+            </div>
+            <span id="compare-rows-count" class="badge">0 pairs</span>
+          </div>
+
+          <!-- Empty State -->
+          <div id="compare-empty" class="compare-empty hidden">
+            <svg class="empty-icon" viewBox="0 0 24 24" width="48" height="48">
+              <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z" fill="currentColor"/>
+            </svg>
+            <h4>No comparison available</h4>
+            <p>Enter an amount in Send above to see what your money is worth in other currencies.</p>
+          </div>
+
+          <!-- Compare List -->
+          <ul id="compare-list" class="compare-list" role="listbox" aria-label="Currency comparisons">
+            <!-- Dynamic comparison items here -->
+          </ul>
         </div>
       </section>
 
@@ -236,16 +256,61 @@
         aria-labelledby="tab-favorites"
         hidden
       >
-        <div class="tab-boilerplate">
-          <h3>Favorites Panel</h3>
-          <p>Your pinned currency pairs will be displayed here.</p>
+        <div class="favorites-container">
+          <!-- Favorites Header -->
+          <div class="favorites-header">
+            <div class="favorites-title-block">
+              <h3>Pinned pairs</h3>
+              <p id="favorites-count-desc">0 favorites</p>
+            </div>
+          </div>
+
+          <!-- Empty State -->
+          <div id="favorites-empty" class="favorites-empty hidden">
+            <svg class="empty-icon" viewBox="0 0 24 24" width="48" height="48">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z" fill="currentColor"/>
+            </svg>
+            <h4>No pinned pairs yet</h4>
+            <p>Pin a pair to track its rate here. Tap the star icon on any conversion or comparison row.</p>
+          </div>
+
+          <!-- Loading State -->
+          <div id="favorites-loading" class="favorites-loading hidden">
+            <div class="spinner"></div>
+            <p>Updating rates...</p>
+          </div>
+
+          <!-- Favorites List -->
+          <ul id="favorites-list" class="favorites-list" role="listbox" aria-label="Pinned currency pairs">
+            <!-- Dynamic favorite items here -->
+          </ul>
         </div>
       </section>
 
       <section id="panel-log" role="tabpanel" aria-labelledby="tab-log" hidden>
-        <div class="tab-boilerplate">
-          <h3>Conversion Log Panel</h3>
-          <p>Your logged conversions history will be displayed here.</p>
+        <div class="log-container">
+          <!-- Log Header -->
+          <div class="log-header">
+            <div class="log-title-block">
+              <h3>Conversion log</h3>
+              <p id="log-count-desc">0 logged</p>
+            </div>
+            <button type="button" id="clear-all-log-btn" class="clear-log-btn hidden">Clear all</button>
+          </div>
+
+          <!-- Empty State -->
+          <div id="log-empty" class="log-empty hidden">
+            <svg class="empty-icon" viewBox="0 0 24 24" width="48" height="48">
+              <path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v-2H7v-2h7V9H7V7h7V5c1.1 0 2 .9 2 2v10c0 1.1-.9 2-2 2z" fill="currentColor"/>
+            </svg>
+            <h4>No conversions logged yet</h4>
+            <p>Every conversion is recorded here automatically when you tap Log conversion. Your log is private to this session and this browser.</p>
+          </div>
+
+          <!-- Log List -->
+          <ul id="log-list" class="log-list" role="listbox" aria-label="Logged conversions">
+            <!-- Dynamic log items here -->
+          </ul>
         </div>
       </section>
     </main>
@@ -299,5 +364,7 @@
         </div>
       </div>
     </dialog>
+    <!-- Screen reader announcer for dynamic visual changes -->
+    <div id="a11y-announcer" class="sr-only" aria-live="polite" aria-atomic="true"></div>
   </body>
 </html>

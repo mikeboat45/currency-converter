@@ -12,7 +12,9 @@ import {
   isFavorite,
   addLogEntry,
   setActiveChartRange,
-  setChartRates
+  setChartRates,
+  deleteLogEntry,
+  clearLog
 } from './services/state.js';
 import { getFlagUrl } from './utils/flags.js';
 
@@ -25,6 +27,7 @@ const swapBtn = document.getElementById('swap');
 const exchangeRateText = document.getElementById('exchange-rate-text');
 const favoriteBtn = document.getElementById('favorite-btn');
 const logBtn = document.getElementById('log-btn');
+const clearAllLogBtn = document.getElementById('clear-all-log-btn');
 
 // Currency Picker Dialog elements
 const currencyPicker = document.getElementById('currency-picker');
@@ -35,11 +38,31 @@ const otherList = document.getElementById('other-list');
 
 // Keep track of which selector triggered the currency dialog ('send' or 'receive')
 let activePickerSide = 'send';
+let searchAnnounceTimeout;
 
 // Chart state variables
 let lastFetchedHistoryKey = '';
 let activeChartData = null;
 let chartResizeObserver = null;
+
+// Compare Panel cache variables
+let lastFetchedCompareBase = '';
+let cachedCompareRates = null;
+
+/**
+ * Utility to announce dynamic visual updates to screen reader users
+ * @param {string} message - Announcement text
+ */
+function announceToScreenReader(message) {
+  const announcer = document.getElementById('a11y-announcer');
+  if (announcer) {
+    announcer.textContent = '';
+    // Small timeout ensures screen readers register the DOM update
+    setTimeout(() => {
+      announcer.textContent = message;
+    }, 100);
+  }
+}
 
 /**
  * Fetches the latest exchange rate from the API and updates state
@@ -93,9 +116,13 @@ function renderCurrencyList() {
     li.setAttribute('aria-selected', isSelected ? 'true' : 'false');
     li.setAttribute('data-code', code);
     
-    // Disable selecting the same currency as the opposite side to prevent identity conversions
+    // Disable keyboard focus and mouse interactions if it's the opposite selected currency
     if (isOpposite) {
       li.style.opacity = '0.5';
+      li.setAttribute('tabindex', '-1');
+      li.setAttribute('aria-disabled', 'true');
+    } else {
+      li.setAttribute('tabindex', '0');
     }
 
     li.innerHTML = `
@@ -107,7 +134,8 @@ function renderCurrencyList() {
       </svg>
     `;
     
-    li.addEventListener('click', () => {
+    const handleSelect = () => {
+      if (isOpposite) return;
       if (activePickerSide === 'send') {
         setSendCurrency(code);
       } else {
@@ -115,6 +143,15 @@ function renderCurrencyList() {
       }
       updateExchangeRate();
       currencyPicker.close();
+      announceToScreenReader(`Selected ${code} (${name}) as ${activePickerSide === 'send' ? 'send' : 'receive'} currency.`);
+    };
+
+    li.addEventListener('click', handleSelect);
+    li.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' || e.key === ' ') {
+        e.preventDefault();
+        handleSelect();
+      }
     });
     
     if (isPopular) {
@@ -134,6 +171,7 @@ function openPicker(side) {
   renderCurrencyList();
   currencyPicker.showModal();
   pickerSearchInput.focus();
+  announceToScreenReader(`Select ${side === 'send' ? 'send' : 'receive'} currency picker dialog opened. Tab down to browse currencies or type to filter.`);
 }
 
 // 1. Subscribe to State Changes & Update UI accordingly
@@ -194,6 +232,15 @@ subscribe((state) => {
 
   // Refresh history chart if needed
   updateHistoryPanelIfNeeded();
+
+  // Refresh compare list if visible
+  updateComparePanel();
+
+  // Refresh favorites list if visible
+  updateFavoritesPanel();
+
+  // Refresh conversion log if visible
+  updateLogPanel();
 });
 
 // 2. Event Listeners for Core Conversion Section
@@ -220,8 +267,10 @@ favoriteBtn.addEventListener('click', () => {
   const { sendCurrency, receiveCurrency } = getState();
   if (isFavorite(sendCurrency, receiveCurrency)) {
     removeFavorite(sendCurrency, receiveCurrency);
+    announceToScreenReader(`Removed ${sendCurrency} to ${receiveCurrency} from favorites.`);
   } else {
     addFavorite(sendCurrency, receiveCurrency);
+    announceToScreenReader(`Added ${sendCurrency} to ${receiveCurrency} to favorites.`);
   }
 });
 
@@ -229,6 +278,7 @@ logBtn.addEventListener('click', () => {
   const { sendCurrency, receiveCurrency, sendAmount, exchangeRate } = getState();
   const receiveAmount = sendAmount * exchangeRate;
   addLogEntry(sendCurrency, receiveCurrency, sendAmount, receiveAmount);
+  announceToScreenReader(`Logged conversion of ${sendAmount.toLocaleString()} ${sendCurrency} to ${receiveAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })} ${receiveCurrency}.`);
   
   // Add temporary button animation feedback
   const originalText = logBtn.textContent;
@@ -239,6 +289,15 @@ logBtn.addEventListener('click', () => {
     logBtn.disabled = false;
   }, 1000);
 });
+
+if (clearAllLogBtn) {
+  clearAllLogBtn.addEventListener('click', () => {
+    if (confirm('Are you sure you want to clear your entire conversion log?')) {
+      clearLog();
+      announceToScreenReader('Cleared entire conversion log history.');
+    }
+  });
+}
 
 // 3. Currency Picker Dialog Events
 sendCurrencyBtn.addEventListener('click', () => openPicker('send'));
@@ -262,16 +321,24 @@ currencyPicker.addEventListener('click', (e) => {
 pickerSearchInput.addEventListener('input', () => {
   const term = pickerSearchInput.value.toLowerCase().trim();
   const items = currencyPicker.querySelectorAll('.currency-item');
+  let visibleCount = 0;
   
   items.forEach((item) => {
     const code = item.querySelector('.currency-code').textContent.toLowerCase();
     const name = item.querySelector('.currency-name').textContent.toLowerCase();
     if (code.includes(term) || name.includes(term)) {
       item.style.display = '';
+      visibleCount++;
     } else {
       item.style.display = 'none';
     }
   });
+
+  // Debounce search count announcements so screen reader doesn't speak on every keystroke
+  clearTimeout(searchAnnounceTimeout);
+  searchAnnounceTimeout = setTimeout(() => {
+    announceToScreenReader(`Found ${visibleCount} currencies matching "${term || 'all'}".`);
+  }, 500);
 });
 
 // 4. Tab Navigation & Accessibility Events
@@ -302,6 +369,21 @@ function switchTab(targetTab) {
   // If switching to the history tab, trigger a check/redraw of the chart
   if (targetTab.id === 'tab-history') {
     updateHistoryPanelIfNeeded();
+  }
+
+  // If switching to the compare tab, trigger an update of the compare list
+  if (targetTab.id === 'tab-compare') {
+    updateComparePanel();
+  }
+
+  // If switching to the favorites tab, trigger an update of the favorites list
+  if (targetTab.id === 'tab-favorites') {
+    updateFavoritesPanel();
+  }
+
+  // If switching to the log tab, trigger an update of the conversion log
+  if (targetTab.id === 'tab-log') {
+    updateLogPanel();
   }
 }
 
@@ -654,6 +736,390 @@ async function updateHistoryPanelIfNeeded() {
 
   lastFetchedHistoryKey = currentKey;
   await updateHistoryPanel();
+}
+
+/**
+ * Renders the multi-currency comparison list in real-time
+ */
+async function updateComparePanel() {
+  const tabCompare = document.getElementById('tab-compare');
+  if (tabCompare && tabCompare.getAttribute('aria-selected') !== 'true') {
+    return;
+  }
+
+  const { sendCurrency, sendAmount, currencies } = getState();
+  const compareList = document.getElementById('compare-list');
+  const compareEmpty = document.getElementById('compare-empty');
+  const compareSendDesc = document.getElementById('compare-send-desc');
+  const compareRowsCount = document.getElementById('compare-rows-count');
+
+  if (!compareList) return;
+
+  // 1. If Send Amount is empty or zero, show empty state prompt
+  if (!sendAmount || sendAmount <= 0) {
+    compareList.innerHTML = '';
+    if (compareSendDesc) compareSendDesc.textContent = `0.00 from ${sendCurrency}`;
+    if (compareRowsCount) {
+      compareRowsCount.textContent = '0 pairs';
+      compareRowsCount.classList.remove('badge');
+    }
+    if (compareEmpty) compareEmpty.classList.remove('hidden');
+    return;
+  }
+
+  if (compareEmpty) compareEmpty.classList.add('hidden');
+
+  try {
+    let rates = cachedCompareRates;
+
+    // 2. Fetch rates if cache is empty or if base currency changed
+    if (sendCurrency !== lastFetchedCompareBase || !rates) {
+      const data = await fetchLatestRates(sendCurrency);
+      rates = data.rates;
+      cachedCompareRates = rates;
+      lastFetchedCompareBase = sendCurrency;
+    }
+
+    // 3. Filter other currencies (excluding the send base currency itself) and sort
+    const targetCodes = Object.keys(currencies)
+      .filter((code) => code !== sendCurrency)
+      .sort();
+
+    if (compareSendDesc) {
+      compareSendDesc.textContent = `${sendAmount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })} from ${sendCurrency}`;
+    }
+    if (compareRowsCount) {
+      compareRowsCount.textContent = `${targetCodes.length} pairs`;
+      compareRowsCount.classList.add('badge');
+    }
+
+    // 4. Clear and rebuild the list elements dynamically
+    compareList.innerHTML = '';
+
+    targetCodes.forEach((code) => {
+      const rate = rates[code];
+      if (rate === undefined) return; // Skip if API rate is not available
+
+      const name = currencies[code];
+      const convertedVal = sendAmount * rate;
+      const isFav = isFavorite(sendCurrency, code);
+
+      const li = document.createElement('li');
+      li.className = 'compare-row';
+      li.setAttribute('role', 'option');
+
+      li.innerHTML = `
+        <div class="compare-currency-info">
+          <img src="${getFlagUrl(code)}" alt="" class="flag-icon" />
+          <div class="currency-text">
+            <span class="compare-code">${code}</span>
+            <span class="compare-name">${name}</span>
+          </div>
+        </div>
+        <div class="compare-values">
+          <span class="compare-converted">${convertedVal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })}</span>
+          <span class="compare-rate">@ ${rate.toFixed(4)}</span>
+        </div>
+        <button type="button" class="pin-btn ${isFav ? 'active' : ''}" aria-label="${isFav ? 'Unpin favorite' : 'Pin favorite'}">
+          <svg class="star-icon" viewBox="0 0 24 24" width="20" height="20">
+            <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+          </svg>
+        </button>
+      `;
+
+      // Handle Pin/Unpin actions
+      const pinBtn = li.querySelector('.pin-btn');
+      pinBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Avoid loading the clicked currency as base
+        if (isFavorite(sendCurrency, code)) {
+          removeFavorite(sendCurrency, code);
+          announceToScreenReader(`Removed ${sendCurrency} to ${code} from favorites.`);
+        } else {
+          addFavorite(sendCurrency, code);
+          announceToScreenReader(`Added ${sendCurrency} to ${code} to favorites.`);
+        }
+      });
+
+      // Quick action: clicking a comparison row loads it back into the converter as Receive currency
+      li.addEventListener('click', () => {
+        setReceiveCurrency(code);
+        updateExchangeRate();
+      });
+
+      compareList.appendChild(li);
+    });
+
+  } catch (error) {
+    console.error('Failed to update compare list:', error);
+    compareList.innerHTML = `<li class="compare-error">Failed to load live exchange rates: ${error.message}</li>`;
+  }
+}
+
+/**
+ * Renders the favorites panel dynamically with grouped rate fetching
+ */
+async function updateFavoritesPanel() {
+  const tabFavorites = document.getElementById('tab-favorites');
+  if (tabFavorites && tabFavorites.getAttribute('aria-selected') !== 'true') {
+    return;
+  }
+
+  const favoritesList = document.getElementById('favorites-list');
+  const favoritesEmpty = document.getElementById('favorites-empty');
+  const favoritesLoading = document.getElementById('favorites-loading');
+  const favoritesCountDesc = document.getElementById('favorites-count-desc');
+
+  if (!favoritesList) return;
+
+  const { favorites } = getState();
+
+  // 1. Update favorites count
+  if (favoritesCountDesc) {
+    favoritesCountDesc.textContent = `${favorites.length} pair${favorites.length === 1 ? '' : 's'}`;
+  }
+
+  // 2. Handle empty state
+  if (favorites.length === 0) {
+    favoritesList.innerHTML = '';
+    if (favoritesEmpty) favoritesEmpty.classList.remove('hidden');
+    if (favoritesLoading) favoritesLoading.classList.add('hidden');
+    return;
+  }
+
+  if (favoritesEmpty) favoritesEmpty.classList.add('hidden');
+  if (favoritesLoading) favoritesLoading.classList.remove('hidden');
+
+  try {
+    // 3. Group by unique base currencies to optimize API requests
+    const uniqueBases = Array.from(new Set(favorites.map(fav => fav.base)));
+
+    // 4. Fetch rates for all unique bases concurrently
+    const fetchedData = await Promise.all(
+      uniqueBases.map(async (base) => {
+        try {
+          const data = await fetchLatestRates(base);
+          return { base, rates: data.rates };
+        } catch (err) {
+          console.error(`Failed to fetch rates for favorite base ${base}:`, err);
+          return { base, rates: null };
+        }
+      })
+    );
+
+    // Map base -> rates for quick lookup
+    const ratesMap = {};
+    fetchedData.forEach(({ base, rates }) => {
+      if (rates) {
+        ratesMap[base] = rates;
+      }
+    });
+
+    // Check if the tab is still active after the async call to avoid race conditions
+    if (tabFavorites.getAttribute('aria-selected') !== 'true') {
+      return;
+    }
+
+    if (favoritesLoading) favoritesLoading.classList.add('hidden');
+    favoritesList.innerHTML = '';
+
+    // 5. Render favorites rows
+    favorites.forEach(({ base, target }) => {
+      const baseRates = ratesMap[base];
+      const rate = baseRates ? baseRates[target] : null;
+
+      const li = document.createElement('li');
+      li.className = 'favorite-row';
+      li.setAttribute('role', 'option');
+
+      if (rate === null || rate === undefined) {
+        // Fallback for failed fetches
+        li.innerHTML = `
+          <div class="favorite-pair-info">
+            <img src="${getFlagUrl(base)}" alt="" class="flag-icon" />
+            <div class="favorite-code-block">
+              <span>${base}</span>
+              <span class="favorite-arrow">→</span>
+              <span>${target}</span>
+            </div>
+            <img src="${getFlagUrl(target)}" alt="" class="flag-icon" />
+          </div>
+          <div class="favorite-values">
+            <span class="favorite-rate" style="color: #666; font-size: 0.85rem;">Unavailable</span>
+          </div>
+          <button type="button" class="pin-btn active" aria-label="Unpin favorite">
+            <svg class="star-icon" viewBox="0 0 24 24" width="20" height="20">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+          </button>
+        `;
+      } else {
+        const changePercent = getSeededChange(target);
+        const isUp = changePercent >= 0;
+        const arrow = isUp ? '▲' : '▼';
+        const changeClass = isUp ? 'up' : 'down';
+
+        li.innerHTML = `
+          <div class="favorite-pair-info">
+            <img src="${getFlagUrl(base)}" alt="" class="flag-icon" />
+            <div class="favorite-code-block">
+              <span>${base}</span>
+              <span class="favorite-arrow">→</span>
+              <span>${target}</span>
+            </div>
+            <img src="${getFlagUrl(target)}" alt="" class="flag-icon" />
+          </div>
+          <div class="favorite-values">
+            <span class="favorite-rate">${rate.toFixed(4)}</span>
+            <span class="favorite-change ${changeClass}">${arrow} ${Math.abs(changePercent).toFixed(2)}%</span>
+          </div>
+          <button type="button" class="pin-btn active" aria-label="Unpin favorite">
+            <svg class="star-icon" viewBox="0 0 24 24" width="20" height="20">
+              <path d="M12 17.27L18.18 21l-1.64-7.03L22 9.24l-7.19-.61L12 2 9.19 8.63 2 9.24l5.46 4.73L5.82 21z"/>
+            </svg>
+          </button>
+        `;
+      }
+
+      // Hook up pin button click to remove from favorites
+      const pinBtn = li.querySelector('.pin-btn');
+      if (pinBtn) {
+        pinBtn.addEventListener('click', (e) => {
+          e.stopPropagation(); // Avoid setting the active pair in the main converter
+          removeFavorite(base, target);
+          announceToScreenReader(`Removed ${base} to ${target} from favorites.`);
+        });
+      }
+
+      // Hook up row click to load the pinned pair back into the main converter
+      li.addEventListener('click', () => {
+        setSendCurrency(base);
+        setReceiveCurrency(target);
+        updateExchangeRate();
+      });
+
+      favoritesList.appendChild(li);
+    });
+
+  } catch (error) {
+    console.error('Failed to update favorites panel:', error);
+    if (favoritesLoading) favoritesLoading.classList.add('hidden');
+    favoritesList.innerHTML = `<li class="compare-error">Failed to load favorite rates: ${error.message}</li>`;
+  }
+}
+
+/**
+ * Formats a timestamp into a relative time string (e.g., "Just now", "2 mins ago")
+ * @param {number} timestamp - The epoch time to format
+ * @returns {string} Relative time description
+ */
+function getRelativeTimeString(timestamp) {
+  const elapsed = Date.now() - timestamp;
+  const msPerMinute = 60 * 1000;
+  const msPerHour = msPerMinute * 60;
+  const msPerDay = msPerHour * 24;
+
+  if (elapsed < msPerMinute) {
+    return 'Just now';
+  } else if (elapsed < msPerHour) {
+    const mins = Math.round(elapsed / msPerMinute);
+    return `${mins} min${mins === 1 ? '' : 's'} ago`;
+  } else if (elapsed < msPerDay) {
+    const hours = Math.round(elapsed / msPerHour);
+    return `${hours} hour${hours === 1 ? '' : 's'} ago`;
+  } else {
+    const days = Math.round(elapsed / msPerDay);
+    if (days === 1) return 'Yesterday';
+    return `${days} days ago`;
+  }
+}
+
+/**
+ * Renders the conversion log dynamically
+ */
+function updateLogPanel() {
+  const tabLog = document.getElementById('tab-log');
+  if (tabLog && tabLog.getAttribute('aria-selected') !== 'true') {
+    return;
+  }
+
+  const logList = document.getElementById('log-list');
+  const logEmpty = document.getElementById('log-empty');
+  const logCountDesc = document.getElementById('log-count-desc');
+  const clearAllBtn = document.getElementById('clear-all-log-btn');
+
+  if (!logList) return;
+
+  const { conversionLog } = getState();
+
+  // 1. Update count metadata
+  if (logCountDesc) {
+    logCountDesc.textContent = `${conversionLog.length} logged`;
+  }
+
+  // 2. Control visibility of the "Clear all" button
+  if (clearAllBtn) {
+    if (conversionLog.length > 0) {
+      clearAllBtn.classList.remove('hidden');
+    } else {
+      clearAllBtn.classList.add('hidden');
+    }
+  }
+
+  // 3. Handle empty state UI
+  if (conversionLog.length === 0) {
+    logList.innerHTML = '';
+    if (logEmpty) logEmpty.classList.remove('hidden');
+    return;
+  }
+
+  if (logEmpty) logEmpty.classList.add('hidden');
+
+  logList.innerHTML = '';
+
+  // 4. Render log rows dynamically
+  conversionLog.forEach((entry) => {
+    const li = document.createElement('li');
+    li.className = 'log-row';
+    li.setAttribute('role', 'option');
+
+    const timeFormatted = getRelativeTimeString(entry.timestamp);
+
+    li.innerHTML = `
+      <div class="log-meta">
+        <span class="log-time">${timeFormatted}</span>
+        <span class="log-pair">${entry.from} → ${entry.to}</span>
+      </div>
+      <div class="log-amounts">
+        <span class="log-amount-from">${entry.amountFrom.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })} ${entry.from}</span>
+        <span class="log-amount-to">${entry.amountTo.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })} ${entry.to}</span>
+      </div>
+      <button type="button" class="delete-log-btn" aria-label="Delete log entry">
+        <svg viewBox="0 0 24 24" width="18" height="18">
+          <path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z" fill="currentColor"/>
+        </svg>
+      </button>
+    `;
+
+    // Hook up individual log item delete button
+    const deleteBtn = li.querySelector('.delete-log-btn');
+    if (deleteBtn) {
+      deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation(); // Avoid setting converter values
+        deleteLogEntry(entry.id);
+        announceToScreenReader(`Deleted conversion log entry for ${entry.amountFrom.toLocaleString()} ${entry.from} to ${entry.amountTo.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 4 })} ${entry.to}.`);
+      });
+    }
+
+    // Hook up row click to load the converted state back into the main inputs
+    li.addEventListener('click', () => {
+      setSendAmount(entry.amountFrom);
+      setSendCurrency(entry.from);
+      setReceiveCurrency(entry.to);
+      updateExchangeRate();
+    });
+
+    logList.appendChild(li);
+  });
 }
 
 // 5. App Initialization
