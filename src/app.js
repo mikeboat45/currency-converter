@@ -252,7 +252,80 @@ pickerSearchInput.addEventListener('input', () => {
   });
 });
 
-// 4. App Initialization
+// 4. Tab Navigation & Accessibility Events
+const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
+const tabpanels = Array.from(document.querySelectorAll('[role="tabpanel"]'));
+
+function switchTab(targetTab) {
+  const targetPanelId = targetTab.getAttribute('aria-controls');
+  
+  tabs.forEach((tab) => {
+    const isTarget = tab === targetTab;
+    tab.setAttribute('aria-selected', isTarget ? 'true' : 'false');
+    tab.setAttribute('tabindex', isTarget ? '0' : '-1');
+  });
+  
+  tabpanels.forEach((panel) => {
+    const isTarget = panel.getAttribute('id') === targetPanelId;
+    if (isTarget) {
+      panel.removeAttribute('hidden');
+    } else {
+      panel.setAttribute('hidden', '');
+    }
+  });
+
+  // Persist the open tab selection
+  localStorage.setItem('fx_checker_active_tab', targetTab.id);
+}
+
+function handleTabKeydown(e) {
+  const currentTab = e.currentTarget;
+  const index = tabs.indexOf(currentTab);
+  let nextIndex;
+
+  switch (e.key) {
+    case 'ArrowRight':
+    case 'ArrowDown':
+      nextIndex = (index + 1) % tabs.length;
+      break;
+    case 'ArrowLeft':
+    case 'ArrowUp':
+      nextIndex = (index - 1 + tabs.length) % tabs.length;
+      break;
+    case 'Home':
+      nextIndex = 0;
+      break;
+    case 'End':
+      nextIndex = tabs.length - 1;
+      break;
+    default:
+      return; // Let browser handle other keys
+  }
+
+  e.preventDefault();
+  const nextTab = tabs[nextIndex];
+  nextTab.focus();
+  switchTab(nextTab);
+}
+
+// Bind events to tabs
+tabs.forEach((tab) => {
+  tab.addEventListener('click', (e) => {
+    switchTab(e.currentTarget);
+  });
+  tab.addEventListener('keydown', handleTabKeydown);
+});
+
+// Restore last active tab on load
+const savedTabId = localStorage.getItem('fx_checker_active_tab');
+if (savedTabId) {
+  const savedTab = document.getElementById(savedTabId);
+  if (savedTab) {
+    switchTab(savedTab);
+  }
+}
+
+// 5. App Initialization
 
 /**
  * A helper to calculate a deterministic hourly seeded percentage change
